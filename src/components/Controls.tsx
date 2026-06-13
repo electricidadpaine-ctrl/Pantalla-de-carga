@@ -248,15 +248,16 @@ export default function Controls({ config, onChange, onReset, triggerMockFinish 
         </label>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { id: 'dark-space', label: 'Slate Oscuro', desc: 'Github Dark' },
-            { id: 'light-slate', label: 'Gris Claro', desc: 'Minimal e incisivo' },
+            { id: 'brand-paine', label: '👑 Paine Corporativo', desc: 'Vanguardia en Morado y Oro' },
             { id: 'electric-navy', label: 'Azul Eléctrico', desc: 'Profundo y técnico' },
+            { id: 'dark-space', label: 'Slate Oscuro', desc: 'Estilo moderno' },
+            { id: 'light-slate', label: 'Gris Claro', desc: 'Limpio e incisivo' },
             { id: 'industrial-grid', label: 'Malla Industrial', desc: 'Glow en rejilla' },
           ] as const).map((bgOpt) => (
             <button
               key={bgOpt.id}
               onClick={() => setField('backgroundStyle', bgOpt.id)}
-              className={`p-2.5 rounded-xl text-left border text-xs transition ${config.backgroundStyle === bgOpt.id ? 'bg-slate-800 border-yellow-500 text-white' : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300'}`}
+              className={`p-2.5 rounded-xl text-left border text-xs transition ${bgOpt.id === 'brand-paine' ? 'col-span-2 ring-1 ring-yellow-500/20' : ''} ${config.backgroundStyle === bgOpt.id ? 'bg-slate-800 border-yellow-500 text-white' : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300'}`}
             >
               <div className="font-bold mb-0.5">{bgOpt.label}</div>
               <div className="text-[10px] text-slate-400 leading-tight">{bgOpt.desc}</div>

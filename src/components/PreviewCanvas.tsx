@@ -8,6 +8,8 @@ interface PreviewCanvasProps {
   key?: React.Key;
   config: LoadingConfig;
   previewMode?: boolean; // True inside the builder preview area, false if full screen popout
+  onComplete?: () => void;
+  loop?: boolean;
 }
 
 const BACKGROUND_STYLES = {
@@ -15,6 +17,7 @@ const BACKGROUND_STYLES = {
   'light-slate': 'bg-slate-50 text-slate-900 border border-slate-200',
   'electric-navy': 'bg-gradient-to-br from-[#060b19] via-[#0b132b] to-[#1c2541] text-white',
   'industrial-grid': 'bg-zinc-950 text-white relative overflow-hidden',
+  'brand-paine': 'bg-gradient-to-tr from-[#140b30] via-[#1F1454] to-[#2B1D6F] text-white',
 };
 
 // Simulation statuses for the electrician theme
@@ -27,7 +30,7 @@ const CHILL_STATUSES = [
   { text: '¡Suministro eléctrico CRL activado!', icon: Zap, delay: 800 },
 ];
 
-export default function PreviewCanvas({ config, previewMode = true }: PreviewCanvasProps) {
+export default function PreviewCanvas({ config, previewMode = true, onComplete, loop = true }: PreviewCanvasProps) {
   const [percentage, setPercentage] = useState(0);
   const [voltage, setVoltage] = useState(0);
   const [currentStatusIndex, setCurrentStatusIndex] = useState(0);
@@ -55,6 +58,15 @@ export default function PreviewCanvas({ config, previewMode = true }: PreviewCan
     intervalId = setInterval(() => {
       setPercentage((prev) => {
         if (prev >= 100) {
+          if (!loop) {
+            clearInterval(intervalId);
+            setTimeout(() => {
+              if (onComplete) {
+                onComplete();
+              }
+            }, 500);
+            return 100;
+          }
           return 0; // loops back for previewing continuously
         }
         return Math.min(prev + selectedSpeed.percentStep, 100);
@@ -73,7 +85,7 @@ export default function PreviewCanvas({ config, previewMode = true }: PreviewCan
     }, selectedSpeed.interval);
 
     return () => clearInterval(intervalId);
-  }, [config.speed, selectedSpeed.interval, selectedSpeed.percentStep]);
+  }, [config.speed, selectedSpeed.interval, selectedSpeed.percentStep, loop, onComplete]);
 
   // Handle step-by-step electrician statuses
   useEffect(() => {
@@ -178,6 +190,9 @@ export default function PreviewCanvas({ config, previewMode = true }: PreviewCan
       )}
       {config.backgroundStyle === 'electric-navy' && (
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_60%)] pointer-events-none" />
+      )}
+      {config.backgroundStyle === 'brand-paine' && (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(241,196,15,0.08),transparent_65%)] pointer-events-none" />
       )}
 
       {/* Decorative lightning spark behind badge for high voltage style */}

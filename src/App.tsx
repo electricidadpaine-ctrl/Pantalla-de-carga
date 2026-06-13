@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LoadingConfig } from './types';
+import { LoadingConfig, ACCENT_COLORS } from './types';
 import PreviewCanvas from './components/PreviewCanvas';
 import Controls from './components/Controls';
 import CodeExporter from './components/CodeExporter';
 import TechGuide from './components/TechGuide';
-import { Zap, Maximize2, RotateCw, Globe, Shield, Sparkles, AlertCircle, X, CheckCircle } from 'lucide-react';
+import LiveWebsiteMockup from './components/LiveWebsiteMockup';
+import { Zap, Maximize2, RotateCw, Globe, Shield, Sparkles, AlertCircle, X, CheckCircle, Layout, Image } from 'lucide-react';
 
 const DEFAULT_CONFIG: LoadingConfig = {
   style: 'high-voltage',
   speed: 'medium',
   accentColor: 'yellow',
-  backgroundStyle: 'electric-navy',
+  backgroundStyle: 'brand-paine', // Default to Paine Brand for high luxury consistency!
   logoSrc: null,
   logoName: null,
   showTools: true,
@@ -28,6 +29,10 @@ export default function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [simulationKey, setSimulationKey] = useState(0); // For rebuilding/re-triggering Preview canvas animations
   const [showNotification, setShowNotification] = useState(false);
+  const [previewTab, setPreviewTab] = useState<'website' | 'loader'>('website');
+  const [isSiteLoading, setIsSiteLoading] = useState(true);
+
+  const activeColor = ACCENT_COLORS[config.accentColor];
 
   // Trigger escape key listener to close full screen demo
   useEffect(() => {
@@ -43,6 +48,7 @@ export default function App() {
   const handleReset = () => {
     setConfig(DEFAULT_CONFIG);
     setSimulationKey((prev) => prev + 1);
+    setIsSiteLoading(true);
     triggerNotice();
   };
 
@@ -52,6 +58,7 @@ export default function App() {
 
   const restartSimulation = () => {
     setSimulationKey((prev) => prev + 1);
+    setIsSiteLoading(true);
   };
 
   const triggerNotice = () => {
@@ -146,11 +153,29 @@ export default function App() {
         </div>
 
         {/* Bento Board: Viewport & Controls */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div id="simulador-estudio-principal" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           
           {/* Lado Izquierdo: Simulación en Navegador (7/12) */}
           <div className="lg:col-span-7 flex flex-col gap-4">
             
+            {/* View Selector Tabs */}
+            <div className="flex bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 self-start gap-1 text-xs">
+              <button
+                onClick={() => { setPreviewTab('website'); restartSimulation(); }}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-bold tracking-tight transition cursor-pointer ${previewTab === 'website' ? 'bg-yellow-500 text-slate-950 shadow-md shadow-yellow-500/10' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+              >
+                <Layout size={14} />
+                <span>Sitio Web Simulado ({isSiteLoading ? 'Cargando...' : 'Cargado'})</span>
+              </button>
+              <button
+                onClick={() => setPreviewTab('loader')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-bold tracking-tight transition cursor-pointer ${previewTab === 'loader' ? 'bg-yellow-500 text-slate-950 shadow-md shadow-yellow-500/10' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+              >
+                <Image size={14} />
+                <span>Pantalla de Carga Sola</span>
+              </button>
+            </div>
+
             {/* Mock browser container */}
             <div className="border border-slate-800 bg-slate-950 rounded-2xl overflow-hidden flex flex-col shadow-2xl shrink-0">
               
@@ -164,40 +189,74 @@ export default function App() {
                 </div>
                 {/* URL input bar */}
                 <div className="flex-1 max-w-sm mx-auto bg-slate-950 rounded-lg py-1 px-3 border border-slate-850 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                  <span className="truncate">https://www.electricidadpaine.cl</span>
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="truncate">
+                    {previewTab === 'website' ? 'https://www.electricidadpaine.cl' : 'https://www.electricidadpaine.cl/preview-loader'}
+                  </span>
+                  <div className={`w-1.5 h-1.5 rounded-full ${isSiteLoading && previewTab === 'website' ? 'bg-yellow-500' : 'bg-emerald-500'} animate-ping`} />
                 </div>
                 {/* Right controls */}
                 <span className="w-8 shrink-0" />
               </div>
 
-              {/* Rendering canvas frame with key for resets */}
-              <div className="p-1.5 bg-slate-900/20">
-                <PreviewCanvas key={simulationKey} config={config} previewMode={true} />
+              {/* Rendering canvas frame with tab toggling */}
+              <div className="p-1 bg-slate-900/20 relative">
+                {previewTab === 'website' ? (
+                  <div className="relative overflow-hidden min-h-[480px]">
+                    {/* Underlay website with our brand setup */}
+                    <LiveWebsiteMockup 
+                      onRestartLoading={restartSimulation}
+                      accentColorHex={activeColor.hex}
+                    />
+                    
+                    {/* Overlay loader */}
+                    <AnimatePresence>
+                      {isSiteLoading && (
+                        <motion.div
+                          initial={{ opacity: 1, filter: 'blur(0px)' }}
+                          exit={{ opacity: 0, scale: 0.98, filter: 'blur(8px)' }}
+                          transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
+                          className="absolute inset-0 z-30"
+                        >
+                          <PreviewCanvas 
+                            key={simulationKey} 
+                            config={config} 
+                            previewMode={true} 
+                            loop={false}
+                            onComplete={() => setIsSiteLoading(false)}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <div className="p-1 bg-slate-900/10">
+                    <PreviewCanvas key={simulationKey} config={config} previewMode={true} loop={true} />
+                  </div>
+                )}
               </div>
 
               {/* Quick utility drawer */}
               <div className="bg-slate-900/50 border-t border-slate-800/80 px-5 py-4 flex items-center justify-between text-xs">
                 <span className="text-slate-400 flex items-center gap-1.5 font-mono text-[10px]">
-                  <Shield size={12} className="text-emerald-500" />
-                  PROTECCIÓN DIFERENCIAL INTEGRADA
+                  <Shield size={12} className="text-[#F1C40F]" />
+                  INSTALACIONES SEGURAS CERTIFICADAS CRL
                 </span>
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={restartSimulation}
-                    className="p-1.5 hover:bg-slate-800 text-slate-300 rounded-lg flex items-center gap-1 border border-slate-800 hover:border-slate-700 transition"
+                    className="p-1.5 hover:bg-slate-800 text-slate-300 rounded-lg flex items-center gap-1 border border-slate-800 hover:border-slate-700 transition cursor-pointer"
                     title="Simular reinicio de carga"
                   >
                     <RotateCw size={13} />
-                    <span className="text-[11px]">Reiniciar</span>
+                    <span className="text-[11px]">Reiniciar Suministro</span>
                   </button>
                   <button
                     onClick={toggleFullscreen}
-                    className="p-1.5 hover:bg-slate-800 text-slate-300 rounded-lg flex items-center gap-1 border border-slate-800 hover:border-slate-700 transition"
+                    className="p-1.5 hover:bg-slate-800 text-slate-300 rounded-lg flex items-center gap-1 border border-slate-800 hover:border-slate-700 transition cursor-pointer"
                     title="Pasar a Pantalla completa"
                   >
                     <Maximize2 size={13} />
-                    <span className="text-[11px]">Ver Completo</span>
+                    <span className="text-[11px]">Pantalla Completa</span>
                   </button>
                 </div>
               </div>

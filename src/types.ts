@@ -1,7 +1,7 @@
 export type LoadingStyle = 'high-voltage' | 'circular-pulse' | 'digital-pulse' | 'minimal-glow';
 export type AnimationSpeed = 'slow' | 'medium' | 'fast' | 'turbo';
 export type AccentColor = 'yellow' | 'blue' | 'red' | 'green' | 'orange' | 'cyan';
-export type BackgroundStyle = 'dark-space' | 'light-slate' | 'electric-navy' | 'industrial-grid';
+export type BackgroundStyle = 'dark-space' | 'light-slate' | 'electric-navy' | 'industrial-grid' | 'brand-paine';
 
 export interface LoadingConfig {
   style: LoadingStyle;
